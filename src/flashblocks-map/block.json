@@ -1,19 +1,47 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "create-block/flashblocks-map",
+	"name": "flashblocks/map",
 	"version": "0.1.0",
-	"title": "Flashblocks Map",
+	"title": "Map",
 	"category": "widgets",
-	"icon": "smiley",
-	"description": "Example block scaffolded with Create Block tool.",
-	"example": {},
+	"icon": "location",
+	"description": "Embed a Google Map by address. No API key required.",
+	"keywords": [ "map", "google", "location", "embed" ],
+	"example": {
+		"attributes": {
+			"address": "Austin, TX",
+			"zoom": 12,
+			"mapType": "m",
+			"height": 300
+		}
+	},
 	"supports": {
-		"html": false
+		"html": false,
+		"align": [ "wide", "full" ],
+		"spacing": {
+			"margin": true
+		}
+	},
+	"attributes": {
+		"address": {
+			"type": "string",
+			"default": "Austin, TX"
+		},
+		"zoom": {
+			"type": "number",
+			"default": 12
+		},
+		"mapType": {
+			"type": "string",
+			"default": "m"
+		},
+		"height": {
+			"type": "number",
+			"default": 400
+		}
 	},
 	"textdomain": "flashblocks-map",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
-	"style": "file:./style-index.css",
-	"viewScript": "file:./view.js"
+	"style": "file:./style-index.css"
 }
