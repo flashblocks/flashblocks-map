@@ -32,3 +32,25 @@
 		}
 	}
 }
+
+.flashblocks-map-copyable {
+	display: block;
+	margin: 4px 0;
+
+	code {
+		display: block;
+		padding: 6px;
+		background: #f0f0f0;
+		font-size: 11px;
+		word-break: break-all;
+		border-radius: 2px;
+		margin-bottom: 4px;
+		user-select: all;
+	}
+
+	.flashblocks-map-copy-btn {
+		font-size: 11px;
+		min-height: 24px;
+		padding: 0 8px;
+	}
+}

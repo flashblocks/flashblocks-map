@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import {
+	Button,
 	PanelBody,
 	TextControl,
 	RangeControl,
@@ -9,7 +10,32 @@ import {
 	ToggleControl,
 	__experimentalNumberControl as NumberControl,
 } from '@wordpress/components';
+import { useCopyToClipboard } from '@wordpress/compose';
+import { useState } from '@wordpress/element';
 import './editor.scss';
+
+const WP_CONFIG_SNIPPET = "define( 'GOOGLE_MAPS_EMBED_API_KEY', 'your-key' );";
+
+function CopyableCode( { text } ) {
+	const [ copied, setCopied ] = useState( false );
+	const ref = useCopyToClipboard( text, () => {
+		setCopied( true );
+		setTimeout( () => setCopied( false ), 2000 );
+	} );
+	return (
+		<span className="flashblocks-map-copyable">
+			<code>{ text }</code>
+			<Button
+				ref={ ref }
+				variant="secondary"
+				size="small"
+				className="flashblocks-map-copy-btn"
+			>
+				{ copied ? __( 'Copied!', 'flashblocks-map' ) : __( 'Copy', 'flashblocks-map' ) }
+			</Button>
+		</span>
+	);
+}
 
 const MAP_TYPES = [
 	{ label: __( 'Roadmap', 'flashblocks-map' ), value: 'roadmap' },
@@ -207,9 +233,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 							</li>
 							<li>
 								{ __( 'Add to wp-config.php:', 'flashblocks-map' ) }
-								<code style={ { display: 'block', margin: '4px 0', padding: '6px', background: '#f0f0f0', fontSize: '11px', wordBreak: 'break-all' } }>
-									define( 'GOOGLE_MAPS_EMBED_API_KEY', 'your-key' );
-								</code>
+								<CopyableCode text={ WP_CONFIG_SNIPPET } />
 							</li>
 						</ol>
 						<p style={ { margin: 0, fontSize: '12px', color: '#757575' } }>
@@ -445,9 +469,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								</li>
 								<li>
 									{ __( 'Add to wp-config.php:', 'flashblocks-map' ) }
-									<code style={ { display: 'block', margin: '4px 0', fontSize: '11px' } }>
-										define( 'GOOGLE_MAPS_EMBED_API_KEY', 'your-key' );
-									</code>
+									<CopyableCode text={ WP_CONFIG_SNIPPET } />
 								</li>
 							</ol>
 							<p style={ { margin: 0, fontSize: '12px' } }>
