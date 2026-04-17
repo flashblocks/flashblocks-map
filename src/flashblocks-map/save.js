@@ -1,27 +1,24 @@
 import { useBlockProps } from '@wordpress/block-editor';
-
-function getMapSrc( { address, zoom, mapType } ) {
-	const params = new URLSearchParams( {
-		q: address,
-		z: zoom,
-		t: mapType,
-		output: 'embed',
-	} );
-	return 'https://maps.google.com/maps?' + params.toString();
-}
+import { getSimpleSrc, getEmbedApiSrc } from './edit';
 
 export default function save( { attributes } ) {
-	const { address, zoom, mapType, height } = attributes;
+	const { useEmbedApi, height, address } = attributes;
 	const blockProps = useBlockProps.save();
+	const src = useEmbedApi
+		? getEmbedApiSrc( attributes )
+		: getSimpleSrc( attributes );
+
+	if ( ! src ) return null;
 
 	return (
 		<div { ...blockProps }>
 			<iframe
-				title={ address }
-				src={ getMapSrc( { address, zoom, mapType } ) }
-				style={ { border: 0, height: height + 'px', width: '100%' } }
+				title={ address || 'Google Map' }
+				src={ src }
+				style={ { border: '0', height: height + 'px', width: '100%' } }
 				loading="lazy"
 				referrerPolicy="no-referrer-when-downgrade"
+				allowFullScreen
 			/>
 		</div>
 	);

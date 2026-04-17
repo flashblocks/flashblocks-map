@@ -1,44 +1,52 @@
 {
 	"apiVersion": 3,
 	"name": "flashblocks/map",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"title": "Map",
 	"category": "widgets",
 	"icon": "location",
-	"description": "Embed a Google Map by address. No API key required.",
-	"keywords": [ "map", "google", "location", "embed" ],
+	"description": "Embed a Google Map. Simple mode needs no API key. Embed API mode unlocks directions, street view, and search.",
+	"keywords": [ "map", "google", "location", "embed", "directions", "streetview" ],
 	"example": {
 		"attributes": {
 			"address": "Austin, TX",
 			"zoom": 12,
-			"mapType": "m",
 			"height": 300
 		}
 	},
 	"supports": {
 		"html": false,
 		"align": [ "wide", "full" ],
-		"spacing": {
-			"margin": true
-		}
+		"spacing": { "margin": true }
 	},
 	"attributes": {
-		"address": {
-			"type": "string",
-			"default": "Austin, TX"
-		},
-		"zoom": {
-			"type": "number",
-			"default": 12
-		},
-		"mapType": {
-			"type": "string",
-			"default": "m"
-		},
-		"height": {
-			"type": "number",
-			"default": 400
-		}
+		"useEmbedApi": { "type": "boolean", "default": false },
+		"height": { "type": "number", "default": 400 },
+		"zoom": { "type": "number", "default": 12 },
+		"address": { "type": "string", "default": "Austin, TX" },
+
+		"simpleMapType": { "type": "string", "default": "m" },
+		"showTraffic": { "type": "boolean", "default": false },
+		"hideInfoWindow": { "type": "boolean", "default": false },
+
+		"embedMode": { "type": "string", "default": "place" },
+		"mapType": { "type": "string", "default": "roadmap" },
+		"language": { "type": "string", "default": "" },
+		"region": { "type": "string", "default": "" },
+		"center": { "type": "string", "default": "" },
+
+		"dirOrigin": { "type": "string", "default": "" },
+		"dirDestination": { "type": "string", "default": "" },
+		"dirWaypoints": { "type": "string", "default": "" },
+		"dirMode": { "type": "string", "default": "driving" },
+		"dirAvoid": { "type": "string", "default": "" },
+		"dirUnits": { "type": "string", "default": "" },
+
+		"svLocation": { "type": "string", "default": "" },
+		"svPano": { "type": "string", "default": "" },
+		"svHeading": { "type": "number", "default": 0 },
+		"svPitch": { "type": "number", "default": 0 },
+		"svFov": { "type": "number", "default": 90 }
 	},
 	"textdomain": "flashblocks-map",
 	"editorScript": "file:./index.js",

@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Flashblocks Map
- * Description:       Embed a Google Map by address. No API key required.
- * Version:           0.1.0
+ * Description:       Embed a Google Map. Simple mode needs no API key. Embed API mode unlocks directions, street view, and search.
+ * Version:           0.2.0
  * Requires at least: 6.8
  * Requires PHP:      7.4
  * Author:            Flashblocks
@@ -37,3 +37,14 @@ function flashblocks_map_block_init() {
 	}
 }
 add_action( 'init', 'flashblocks_map_block_init' );
+
+function flashblocks_map_editor_assets() {
+	$api_key = defined( 'GOOGLE_MAPS_EMBED_API_KEY' ) ? GOOGLE_MAPS_EMBED_API_KEY : '';
+
+	wp_localize_script(
+		'flashblocks-map-flashblocks-map-editor-script',
+		'flashblocksMap',
+		array( 'apiKey' => $api_key )
+	);
+}
+add_action( 'enqueue_block_editor_assets', 'flashblocks_map_editor_assets' );
