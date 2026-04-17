@@ -45,8 +45,6 @@ const SIMPLE_MAP_TYPES = [
 const API_MAP_TYPES = [
 	{ label: __( 'Roadmap', 'flashblocks-map' ), value: 'roadmap' },
 	{ label: __( 'Satellite', 'flashblocks-map' ), value: 'satellite' },
-	{ label: __( 'Hybrid', 'flashblocks-map' ), value: 'hybrid' },
-	{ label: __( 'Terrain', 'flashblocks-map' ), value: 'terrain' },
 ];
 
 const EMBED_MODES = [
