@@ -104,12 +104,11 @@ function flashblocks_map_build_embed_api_src( $attributes, $api_key ) {
 			break;
 
 		case 'directions':
-			$origin      = isset( $attributes['dirOrigin'] ) ? $attributes['dirOrigin'] : '';
 			$destination = isset( $attributes['dirDestination'] ) ? $attributes['dirDestination'] : '';
-			if ( ! $origin || ! $destination ) {
+			if ( ! $address || ! $destination ) {
 				return '';
 			}
-			$params['origin']      = $origin;
+			$params['origin']      = $address;
 			$params['destination'] = $destination;
 			if ( ! empty( $attributes['dirWaypoints'] ) ) {
 				$params['waypoints'] = $attributes['dirWaypoints'];

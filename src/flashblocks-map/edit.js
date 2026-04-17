@@ -108,8 +108,8 @@ export function getEmbedApiSrc( attributes ) {
 			if ( center ) params.set( 'center', center );
 			break;
 		case 'directions':
-			if ( ! dirOrigin || ! dirDestination ) return '';
-			params.set( 'origin', dirOrigin );
+			if ( ! address || ! dirDestination ) return '';
+			params.set( 'origin', address );
 			params.set( 'destination', dirDestination );
 			if ( dirWaypoints ) params.set( 'waypoints', dirWaypoints );
 			if ( dirMode ) params.set( 'mode', dirMode );
@@ -139,7 +139,7 @@ export function getEmbedApiSrc( attributes ) {
 function getPlaceholderMessage( embedMode ) {
 	switch ( embedMode ) {
 		case 'directions':
-			return __( 'Enter an origin and destination to show directions.', 'flashblocks-map' );
+			return __( 'Enter a destination to show directions.', 'flashblocks-map' );
 		case 'streetview':
 			return __( 'Enter a location (lat,lng) or panorama ID to show Street View.', 'flashblocks-map' );
 		case 'search':
@@ -155,20 +155,26 @@ function SharedControls( { attributes, setAttributes } ) {
 	const { address, zoom, height, useEmbedApi } = attributes;
 	return (
 		<PanelBody title={ __( 'Map Display', 'flashblocks-map' ) }>
-			{ /* Address is shared — used by simple mode and place/search in API mode */ }
-			{ ( ! useEmbedApi || attributes.embedMode === 'place' || attributes.embedMode === 'search' ) && (
+			{ /* Address is shared — used by all modes except streetview */ }
+			{ ( ! useEmbedApi || attributes.embedMode !== 'streetview' ) && (
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
-					label={ useEmbedApi && attributes.embedMode === 'search'
-						? __( 'Search Query', 'flashblocks-map' )
-						: __( 'Address', 'flashblocks-map' )
+					label={
+						useEmbedApi && attributes.embedMode === 'search'
+							? __( 'Search Query', 'flashblocks-map' )
+							: useEmbedApi && attributes.embedMode === 'directions'
+								? __( 'Origin', 'flashblocks-map' )
+								: __( 'Address', 'flashblocks-map' )
 					}
 					value={ address }
 					onChange={ ( v ) => setAttributes( { address: v } ) }
-					help={ useEmbedApi && attributes.embedMode === 'search'
-						? __( 'e.g. "coffee shops in Austin" or "hotels near Times Square"', 'flashblocks-map' )
-						: __( 'Address or place name', 'flashblocks-map' )
+					help={
+						useEmbedApi && attributes.embedMode === 'search'
+							? __( 'e.g. "coffee shops in Austin" or "hotels near Times Square"', 'flashblocks-map' )
+							: useEmbedApi && attributes.embedMode === 'directions'
+								? __( 'Starting point for directions', 'flashblocks-map' )
+								: __( 'Address or place name', 'flashblocks-map' )
 					}
 				/>
 			) }
@@ -318,14 +324,6 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 
 			{ embedMode === 'directions' && (
 				<PanelBody title={ __( 'Directions', 'flashblocks-map' ) } initialOpen>
-					<TextControl
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-						label={ __( 'Origin', 'flashblocks-map' ) }
-						value={ dirOrigin }
-						onChange={ ( v ) => setAttributes( { dirOrigin: v } ) }
-						placeholder={ __( 'e.g. Austin, TX', 'flashblocks-map' ) }
-					/>
 					<TextControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
