@@ -45,6 +45,8 @@ const SIMPLE_MAP_TYPES = [
 const API_MAP_TYPES = [
 	{ label: __( 'Roadmap', 'flashblocks-map' ), value: 'roadmap' },
 	{ label: __( 'Satellite', 'flashblocks-map' ), value: 'satellite' },
+	{ label: __( 'Hybrid', 'flashblocks-map' ), value: 'hybrid' },
+	{ label: __( 'Terrain', 'flashblocks-map' ), value: 'terrain' },
 ];
 
 const EMBED_MODES = [
@@ -267,9 +269,6 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 					options={ API_MAP_TYPES }
 					onChange={ ( v ) => setAttributes( { mapType: v } ) }
 				/>
-				<p style={ { fontSize: '12px', color: '#757575', margin: '8px 0 0' } }>
-					{ __( 'The Embed API only supports roadmap and satellite.', 'flashblocks-map' ) }
-				</p>
 			</PanelBody>
 
 			<PanelBody title={ __( 'Localization', 'flashblocks-map' ) } initialOpen={ false }>
