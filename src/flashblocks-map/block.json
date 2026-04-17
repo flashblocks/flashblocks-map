@@ -1,7 +1,7 @@
 {
 	"apiVersion": 3,
 	"name": "flashblocks/map",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"title": "Map",
 	"category": "widgets",
 	"icon": "location",
@@ -26,8 +26,6 @@
 		"address": { "type": "string", "default": "Austin, TX" },
 
 		"simpleMapType": { "type": "string", "default": "m" },
-		"showTraffic": { "type": "boolean", "default": false },
-		"hideInfoWindow": { "type": "boolean", "default": false },
 
 		"embedMode": { "type": "string", "default": "place" },
 		"mapType": { "type": "string", "default": "roadmap" },
@@ -51,5 +49,6 @@
 	"textdomain": "flashblocks-map",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
-	"style": "file:./style-index.css"
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
 }

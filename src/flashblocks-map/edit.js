@@ -24,25 +24,17 @@ function CopyableCode( { text } ) {
 	return (
 		<span className="flashblocks-map-copyable">
 			<code>{ text }</code>
-			<Button
-				ref={ ref }
-				variant="secondary"
-				size="small"
-				className="flashblocks-map-copy-btn"
-			>
+			<Button ref={ ref } variant="secondary" size="small" className="flashblocks-map-copy-btn">
 				{ copied ? __( 'Copied!', 'flashblocks-map' ) : __( 'Copy', 'flashblocks-map' ) }
 			</Button>
 		</span>
 	);
 }
 
-const MAP_TYPES = [
-	{ label: __( 'Roadmap', 'flashblocks-map' ), value: 'roadmap' },
-	{ label: __( 'Satellite', 'flashblocks-map' ), value: 'satellite' },
-	{ label: __( 'Hybrid', 'flashblocks-map' ), value: 'hybrid' },
-	{ label: __( 'Terrain', 'flashblocks-map' ), value: 'terrain' },
-];
-
+/*
+ * Map type options — shared concept, different values per mode.
+ * Simple embed uses single-letter codes, Embed API uses full names.
+ */
 const SIMPLE_MAP_TYPES = [
 	{ label: __( 'Roadmap', 'flashblocks-map' ), value: 'm' },
 	{ label: __( 'Satellite', 'flashblocks-map' ), value: 'k' },
@@ -50,9 +42,13 @@ const SIMPLE_MAP_TYPES = [
 	{ label: __( 'Terrain', 'flashblocks-map' ), value: 'p' },
 ];
 
+const API_MAP_TYPES = [
+	{ label: __( 'Roadmap', 'flashblocks-map' ), value: 'roadmap' },
+	{ label: __( 'Satellite', 'flashblocks-map' ), value: 'satellite' },
+];
+
 const EMBED_MODES = [
 	{ label: __( 'Place — pin at a location', 'flashblocks-map' ), value: 'place' },
-	{ label: __( 'View — map with no pin', 'flashblocks-map' ), value: 'view' },
 	{ label: __( 'Directions — route between places', 'flashblocks-map' ), value: 'directions' },
 	{ label: __( 'Street View — panorama', 'flashblocks-map' ), value: 'streetview' },
 	{ label: __( 'Search — find nearby places', 'flashblocks-map' ), value: 'search' },
@@ -72,16 +68,16 @@ const UNIT_OPTIONS = [
 	{ label: __( 'Imperial', 'flashblocks-map' ), value: 'imperial' },
 ];
 
+/* ── URL builders ── */
+
 export function getSimpleSrc( attributes ) {
-	const { address, zoom, simpleMapType, showTraffic, hideInfoWindow } = attributes;
+	const { address, zoom, simpleMapType } = attributes;
 	const params = new URLSearchParams( {
 		q: address,
 		z: zoom,
 		t: simpleMapType,
 		output: 'embed',
 	} );
-	if ( showTraffic ) params.set( 'layer', 'traffic' );
-	if ( hideInfoWindow ) params.set( 'iwloc', 'B' );
 	return 'https://maps.google.com/maps?' + params.toString();
 }
 
@@ -109,14 +105,6 @@ export function getEmbedApiSrc( attributes ) {
 			params.set( 'q', address );
 			if ( center ) params.set( 'center', center );
 			break;
-		case 'view':
-			if ( center ) {
-				params.set( 'center', center );
-			} else {
-				// View requires center — fall back to place mode with address
-				return getEmbedApiSrc( { ...attributes, embedMode: 'place' } );
-			}
-			break;
 		case 'directions':
 			if ( ! dirOrigin || ! dirDestination ) return '';
 			params.set( 'origin', dirOrigin );
@@ -135,6 +123,7 @@ export function getEmbedApiSrc( attributes ) {
 			if ( svFov ) params.set( 'fov', svFov );
 			break;
 		case 'search':
+			if ( ! address ) return '';
 			params.set( 'q', address );
 			if ( center ) params.set( 'center', center );
 			break;
@@ -143,21 +132,44 @@ export function getEmbedApiSrc( attributes ) {
 	return base + '?' + params.toString();
 }
 
+/* ── Placeholder messages ── */
+
 function getPlaceholderMessage( embedMode ) {
 	switch ( embedMode ) {
 		case 'directions':
 			return __( 'Enter an origin and destination to show directions.', 'flashblocks-map' );
 		case 'streetview':
-			return __( 'Enter a location (lat,lng) to show Street View.', 'flashblocks-map' );
+			return __( 'Enter a location (lat,lng) or panorama ID to show Street View.', 'flashblocks-map' );
+		case 'search':
+			return __( 'Enter a search query to show results.', 'flashblocks-map' );
 		default:
 			return __( 'Configure settings to display the map.', 'flashblocks-map' );
 	}
 }
 
+/* ── Shared controls (both modes) ── */
+
 function SharedControls( { attributes, setAttributes } ) {
-	const { zoom, height } = attributes;
+	const { address, zoom, height, useEmbedApi } = attributes;
 	return (
 		<PanelBody title={ __( 'Map Display', 'flashblocks-map' ) }>
+			{ /* Address is shared — used by simple mode and place/search in API mode */ }
+			{ ( ! useEmbedApi || attributes.embedMode === 'place' || attributes.embedMode === 'search' ) && (
+				<TextControl
+					__nextHasNoMarginBottom
+					__next40pxDefaultSize
+					label={ useEmbedApi && attributes.embedMode === 'search'
+						? __( 'Search Query', 'flashblocks-map' )
+						: __( 'Address', 'flashblocks-map' )
+					}
+					value={ address }
+					onChange={ ( v ) => setAttributes( { address: v } ) }
+					help={ useEmbedApi && attributes.embedMode === 'search'
+						? __( 'e.g. "coffee shops in Austin" or "hotels near Times Square"', 'flashblocks-map' )
+						: __( 'Address or place name', 'flashblocks-map' )
+					}
+				/>
+			) }
 			<RangeControl
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
@@ -181,43 +193,26 @@ function SharedControls( { attributes, setAttributes } ) {
 	);
 }
 
+/* ── Simple mode controls ── */
+
 function SimpleControls( { attributes, setAttributes } ) {
-	const { address, simpleMapType, showTraffic, hideInfoWindow } = attributes;
+	const { simpleMapType } = attributes;
 	return (
-		<PanelBody title={ __( 'Simple Embed Settings', 'flashblocks-map' ) }>
-			<TextControl
-				__nextHasNoMarginBottom
-				__next40pxDefaultSize
-				label={ __( 'Address', 'flashblocks-map' ) }
-				value={ address }
-				onChange={ ( v ) => setAttributes( { address: v } ) }
-				help={ __( 'Address or place name', 'flashblocks-map' ) }
-			/>
+		<PanelBody title={ __( 'Map Type', 'flashblocks-map' ) }>
 			<RadioControl
-				label={ __( 'Map Type', 'flashblocks-map' ) }
 				selected={ simpleMapType }
 				options={ SIMPLE_MAP_TYPES }
 				onChange={ ( v ) => setAttributes( { simpleMapType: v } ) }
-			/>
-			<ToggleControl
-				__nextHasNoMarginBottom
-				label={ __( 'Show traffic layer', 'flashblocks-map' ) }
-				checked={ showTraffic }
-				onChange={ ( v ) => setAttributes( { showTraffic: v } ) }
-			/>
-			<ToggleControl
-				__nextHasNoMarginBottom
-				label={ __( 'Hide info window', 'flashblocks-map' ) }
-				checked={ hideInfoWindow }
-				onChange={ ( v ) => setAttributes( { hideInfoWindow: v } ) }
 			/>
 		</PanelBody>
 	);
 }
 
+/* ── Embed API controls ── */
+
 function EmbedApiControls( { attributes, setAttributes } ) {
 	const {
-		embedMode, address, mapType, language, region, center,
+		embedMode, mapType, language, region, center,
 		dirOrigin, dirDestination, dirWaypoints, dirMode, dirAvoid, dirUnits,
 		svLocation, svPano, svHeading, svPitch, svFov,
 	} = attributes;
@@ -226,7 +221,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 
 	return (
 		<>
-			<PanelBody title={ __( 'Embed API Settings', 'flashblocks-map' ) }>
+			<PanelBody title={ __( 'Embed API', 'flashblocks-map' ) }>
 				{ ! hasKey && (
 					<div style={ { marginBottom: '16px' } }>
 						<p style={ { color: '#d63638', fontWeight: 600, margin: '0 0 8px' } }>
@@ -264,12 +259,20 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 					options={ EMBED_MODES }
 					onChange={ ( v ) => setAttributes( { embedMode: v } ) }
 				/>
+			</PanelBody>
+
+			<PanelBody title={ __( 'Map Type', 'flashblocks-map' ) } initialOpen={ false }>
 				<RadioControl
-					label={ __( 'Map Type', 'flashblocks-map' ) }
 					selected={ mapType }
-					options={ MAP_TYPES }
+					options={ API_MAP_TYPES }
 					onChange={ ( v ) => setAttributes( { mapType: v } ) }
 				/>
+				<p style={ { fontSize: '12px', color: '#757575', margin: '8px 0 0' } }>
+					{ __( 'The Embed API only supports roadmap and satellite.', 'flashblocks-map' ) }
+				</p>
+			</PanelBody>
+
+			<PanelBody title={ __( 'Localization', 'flashblocks-map' ) } initialOpen={ false }>
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
@@ -288,39 +291,28 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 				/>
 			</PanelBody>
 
-			{ ( embedMode === 'place' || embedMode === 'search' ) && (
-				<PanelBody title={ embedMode === 'search' ? __( 'Search', 'flashblocks-map' ) : __( 'Location', 'flashblocks-map' ) } initialOpen>
-					<TextControl
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-						label={ embedMode === 'search' ? __( 'Search Query', 'flashblocks-map' ) : __( 'Address', 'flashblocks-map' ) }
-						value={ address }
-						onChange={ ( v ) => setAttributes( { address: v } ) }
-						help={ embedMode === 'search'
-							? __( 'Try a category like "coffee shops in Austin" or "hotels near Times Square"', 'flashblocks-map' )
-							: __( 'Address, place name, or Place ID', 'flashblocks-map' )
-						}
-					/>
+			{ embedMode === 'place' && (
+				<PanelBody title={ __( 'Place Options', 'flashblocks-map' ) } initialOpen={ false }>
 					<TextControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
 						label={ __( 'Center (lat,lng)', 'flashblocks-map' ) }
 						value={ center }
 						onChange={ ( v ) => setAttributes( { center: v } ) }
-						help={ __( 'Optional. Bias results toward this location.', 'flashblocks-map' ) }
+						help={ __( 'Optional. Override the map center independently of the pin.', 'flashblocks-map' ) }
 					/>
 				</PanelBody>
 			) }
 
-			{ embedMode === 'view' && (
-				<PanelBody title={ __( 'View', 'flashblocks-map' ) } initialOpen>
+			{ embedMode === 'search' && (
+				<PanelBody title={ __( 'Search Options', 'flashblocks-map' ) } initialOpen={ false }>
 					<TextControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
 						label={ __( 'Center (lat,lng)', 'flashblocks-map' ) }
 						value={ center }
 						onChange={ ( v ) => setAttributes( { center: v } ) }
-						help={ __( 'e.g. 30.27,-97.74 — leave empty to use the address as a pin instead', 'flashblocks-map' ) }
+						help={ __( 'Optional. Bias search results toward this location.', 'flashblocks-map' ) }
 					/>
 				</PanelBody>
 			) }
@@ -428,6 +420,8 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 	);
 }
 
+/* ── Main Edit component ── */
+
 export default function Edit( { attributes, setAttributes } ) {
 	const { useEmbedApi, height, embedMode } = attributes;
 	const blockProps = useBlockProps();
@@ -445,13 +439,13 @@ export default function Edit( { attributes, setAttributes } ) {
 				<PanelBody title={ __( 'Embed Mode', 'flashblocks-map' ) }>
 					<ToggleControl
 						__nextHasNoMarginBottom
-						label={ __( 'Use Embed API (requires API key)', 'flashblocks-map' ) }
+						label={ __( 'Use Embed API', 'flashblocks-map' ) }
 						checked={ useEmbedApi }
 						onChange={ ( v ) => setAttributes( { useEmbedApi: v } ) }
 						help={
 							useEmbedApi
-								? __( 'Using Google Maps Embed API with key', 'flashblocks-map' )
-								: __( 'Using simple iframe embed — no key needed', 'flashblocks-map' )
+								? __( 'Embed API — directions, street view, search (free API key required)', 'flashblocks-map' )
+								: __( 'Simple embed — no key needed, just address + map type', 'flashblocks-map' )
 						}
 					/>
 				</PanelBody>
@@ -488,7 +482,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								</li>
 							</ol>
 							<p style={ { margin: 0, fontSize: '12px' } }>
-								{ __( 'Or switch to Simple mode (no key needed).', 'flashblocks-map' ) }
+								{ __( 'Or switch off Embed API (no key needed).', 'flashblocks-map' ) }
 							</p>
 						</div>
 					</div>
