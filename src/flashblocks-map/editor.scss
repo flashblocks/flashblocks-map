@@ -14,9 +14,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 200px;
+		text-align: center;
 		background: #f0f0f0;
 		color: #757575;
-		font-style: italic;
+		padding: 24px;
+		box-sizing: border-box;
+
+		a {
+			color: #2271b1;
+		}
+
+		code {
+			background: #e0e0e0;
+			padding: 4px 6px;
+			border-radius: 2px;
+			word-break: break-all;
+		}
 	}
 }

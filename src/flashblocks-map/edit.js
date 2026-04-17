@@ -185,9 +185,37 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 		<>
 			<PanelBody title={ __( 'Embed API Settings', 'flashblocks-map' ) }>
 				{ ! hasKey && (
-					<p style={ { color: '#d63638' } }>
-						{ __( 'No API key found. Define GOOGLE_MAPS_EMBED_API_KEY in wp-config.php.', 'flashblocks-map' ) }
-					</p>
+					<div style={ { marginBottom: '16px' } }>
+						<p style={ { color: '#d63638', fontWeight: 600, margin: '0 0 8px' } }>
+							{ __( 'No API key found.', 'flashblocks-map' ) }
+						</p>
+						<p style={ { margin: '0 0 8px' } }>
+							{ __( 'To enable Embed API mode:', 'flashblocks-map' ) }
+						</p>
+						<ol style={ { margin: '0 0 8px', paddingLeft: '20px', fontSize: '12px' } }>
+							<li>
+								<a href="https://console.cloud.google.com/apis/library/maps-embed-backend.googleapis.com" target="_blank" rel="noopener noreferrer">
+									{ __( 'Enable the Maps Embed API', 'flashblocks-map' ) }
+								</a>
+								{ __( ' in Google Cloud Console', 'flashblocks-map' ) }
+							</li>
+							<li>
+								<a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">
+									{ __( 'Create an API key', 'flashblocks-map' ) }
+								</a>
+								{ __( ' (restrict to Maps Embed API + your domain)', 'flashblocks-map' ) }
+							</li>
+							<li>
+								{ __( 'Add to wp-config.php:', 'flashblocks-map' ) }
+								<code style={ { display: 'block', margin: '4px 0', padding: '6px', background: '#f0f0f0', fontSize: '11px', wordBreak: 'break-all' } }>
+									define( 'GOOGLE_MAPS_EMBED_API_KEY', 'your-key' );
+								</code>
+							</li>
+						</ol>
+						<p style={ { margin: 0, fontSize: '12px', color: '#757575' } }>
+							{ __( 'The Embed API is free with no usage limits.', 'flashblocks-map' ) }
+						</p>
+					</div>
 				) }
 				<SelectControl
 					__nextHasNoMarginBottom
@@ -399,9 +427,34 @@ export default function Edit( { attributes, setAttributes } ) {
 						allowFullScreen
 					/>
 				) : (
-					<p className="flashblocks-map-placeholder" style={ { height } }>
-						{ __( 'Configure an API key to use Embed API mode.', 'flashblocks-map' ) }
-					</p>
+					<div className="flashblocks-map-placeholder" style={ { height } }>
+						<div>
+							<p style={ { fontWeight: 600, margin: '0 0 8px' } }>
+								{ __( 'Embed API key required', 'flashblocks-map' ) }
+							</p>
+							<ol style={ { margin: '0 0 8px', paddingLeft: '20px', fontSize: '13px', textAlign: 'left' } }>
+								<li>
+									<a href="https://console.cloud.google.com/apis/library/maps-embed-backend.googleapis.com" target="_blank" rel="noopener noreferrer">
+										{ __( 'Enable Maps Embed API', 'flashblocks-map' ) }
+									</a>
+								</li>
+								<li>
+									<a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">
+										{ __( 'Create an API key', 'flashblocks-map' ) }
+									</a>
+								</li>
+								<li>
+									{ __( 'Add to wp-config.php:', 'flashblocks-map' ) }
+									<code style={ { display: 'block', margin: '4px 0', fontSize: '11px' } }>
+										define( 'GOOGLE_MAPS_EMBED_API_KEY', 'your-key' );
+									</code>
+								</li>
+							</ol>
+							<p style={ { margin: 0, fontSize: '12px' } }>
+								{ __( 'Or switch to Simple mode (no key needed).', 'flashblocks-map' ) }
+							</p>
+						</div>
+					</div>
 				) }
 			</div>
 		</>
