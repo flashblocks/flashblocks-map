@@ -8,7 +8,6 @@ import {
 	RadioControl,
 	SelectControl,
 	ToggleControl,
-	__experimentalNumberControl as NumberControl,
 } from '@wordpress/components';
 import { useCopyToClipboard } from '@wordpress/compose';
 import { useState } from '@wordpress/element';
@@ -52,11 +51,11 @@ const SIMPLE_MAP_TYPES = [
 ];
 
 const EMBED_MODES = [
-	{ label: __( 'Place', 'flashblocks-map' ), value: 'place' },
-	{ label: __( 'View', 'flashblocks-map' ), value: 'view' },
-	{ label: __( 'Directions', 'flashblocks-map' ), value: 'directions' },
-	{ label: __( 'Street View', 'flashblocks-map' ), value: 'streetview' },
-	{ label: __( 'Search', 'flashblocks-map' ), value: 'search' },
+	{ label: __( 'Place — pin at a location', 'flashblocks-map' ), value: 'place' },
+	{ label: __( 'View — map with no pin', 'flashblocks-map' ), value: 'view' },
+	{ label: __( 'Directions — route between places', 'flashblocks-map' ), value: 'directions' },
+	{ label: __( 'Street View — panorama', 'flashblocks-map' ), value: 'streetview' },
+	{ label: __( 'Search — find nearby places', 'flashblocks-map' ), value: 'search' },
 ];
 
 const TRAVEL_MODES = [
@@ -111,9 +110,15 @@ export function getEmbedApiSrc( attributes ) {
 			if ( center ) params.set( 'center', center );
 			break;
 		case 'view':
-			params.set( 'center', center || '0,0' );
+			if ( center ) {
+				params.set( 'center', center );
+			} else {
+				// View requires center — fall back to place mode with address
+				return getEmbedApiSrc( { ...attributes, embedMode: 'place' } );
+			}
 			break;
 		case 'directions':
+			if ( ! dirOrigin || ! dirDestination ) return '';
 			params.set( 'origin', dirOrigin );
 			params.set( 'destination', dirDestination );
 			if ( dirWaypoints ) params.set( 'waypoints', dirWaypoints );
@@ -122,6 +127,7 @@ export function getEmbedApiSrc( attributes ) {
 			if ( dirUnits ) params.set( 'units', dirUnits );
 			break;
 		case 'streetview':
+			if ( ! svLocation && ! svPano ) return '';
 			if ( svPano ) params.set( 'pano', svPano );
 			if ( svLocation ) params.set( 'location', svLocation );
 			if ( svHeading ) params.set( 'heading', svHeading );
@@ -135,6 +141,17 @@ export function getEmbedApiSrc( attributes ) {
 	}
 
 	return base + '?' + params.toString();
+}
+
+function getPlaceholderMessage( embedMode ) {
+	switch ( embedMode ) {
+		case 'directions':
+			return __( 'Enter an origin and destination to show directions.', 'flashblocks-map' );
+		case 'streetview':
+			return __( 'Enter a location (lat,lng) to show Street View.', 'flashblocks-map' );
+		default:
+			return __( 'Configure settings to display the map.', 'flashblocks-map' );
+	}
 }
 
 function SharedControls( { attributes, setAttributes } ) {
@@ -241,11 +258,9 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						</p>
 					</div>
 				) }
-				<SelectControl
-					__nextHasNoMarginBottom
-					__next40pxDefaultSize
+				<RadioControl
 					label={ __( 'Mode', 'flashblocks-map' ) }
-					value={ embedMode }
+					selected={ embedMode }
 					options={ EMBED_MODES }
 					onChange={ ( v ) => setAttributes( { embedMode: v } ) }
 				/>
@@ -274,13 +289,17 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 			</PanelBody>
 
 			{ ( embedMode === 'place' || embedMode === 'search' ) && (
-				<PanelBody title={ __( 'Location', 'flashblocks-map' ) } initialOpen>
+				<PanelBody title={ embedMode === 'search' ? __( 'Search', 'flashblocks-map' ) : __( 'Location', 'flashblocks-map' ) } initialOpen>
 					<TextControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
-						label={ __( 'Address / Query', 'flashblocks-map' ) }
+						label={ embedMode === 'search' ? __( 'Search Query', 'flashblocks-map' ) : __( 'Address', 'flashblocks-map' ) }
 						value={ address }
 						onChange={ ( v ) => setAttributes( { address: v } ) }
+						help={ embedMode === 'search'
+							? __( 'Try a category like "coffee shops in Austin" or "hotels near Times Square"', 'flashblocks-map' )
+							: __( 'Address, place name, or Place ID', 'flashblocks-map' )
+						}
 					/>
 					<TextControl
 						__nextHasNoMarginBottom
@@ -288,7 +307,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Center (lat,lng)', 'flashblocks-map' ) }
 						value={ center }
 						onChange={ ( v ) => setAttributes( { center: v } ) }
-						help={ __( 'Optional. e.g. 30.27,-97.74', 'flashblocks-map' ) }
+						help={ __( 'Optional. Bias results toward this location.', 'flashblocks-map' ) }
 					/>
 				</PanelBody>
 			) }
@@ -301,7 +320,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Center (lat,lng)', 'flashblocks-map' ) }
 						value={ center }
 						onChange={ ( v ) => setAttributes( { center: v } ) }
-						help={ __( 'Required. e.g. 30.27,-97.74', 'flashblocks-map' ) }
+						help={ __( 'e.g. 30.27,-97.74 — leave empty to use the address as a pin instead', 'flashblocks-map' ) }
 					/>
 				</PanelBody>
 			) }
@@ -314,6 +333,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Origin', 'flashblocks-map' ) }
 						value={ dirOrigin }
 						onChange={ ( v ) => setAttributes( { dirOrigin: v } ) }
+						placeholder={ __( 'e.g. Austin, TX', 'flashblocks-map' ) }
 					/>
 					<TextControl
 						__nextHasNoMarginBottom
@@ -321,6 +341,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Destination', 'flashblocks-map' ) }
 						value={ dirDestination }
 						onChange={ ( v ) => setAttributes( { dirDestination: v } ) }
+						placeholder={ __( 'e.g. Houston, TX', 'flashblocks-map' ) }
 					/>
 					<TextControl
 						__nextHasNoMarginBottom
@@ -328,13 +349,11 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Waypoints', 'flashblocks-map' ) }
 						value={ dirWaypoints }
 						onChange={ ( v ) => setAttributes( { dirWaypoints: v } ) }
-						help={ __( 'Separate with | e.g. Berlin|Paris', 'flashblocks-map' ) }
+						help={ __( 'Optional. Separate with | e.g. San Antonio|Waco', 'flashblocks-map' ) }
 					/>
-					<SelectControl
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
+					<RadioControl
 						label={ __( 'Travel Mode', 'flashblocks-map' ) }
-						value={ dirMode }
+						selected={ dirMode }
 						options={ TRAVEL_MODES }
 						onChange={ ( v ) => setAttributes( { dirMode: v } ) }
 					/>
@@ -365,6 +384,8 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Location (lat,lng)', 'flashblocks-map' ) }
 						value={ svLocation }
 						onChange={ ( v ) => setAttributes( { svLocation: v } ) }
+						placeholder={ __( 'e.g. 30.27,-97.74', 'flashblocks-map' ) }
+						help={ __( 'Required unless Panorama ID is set.', 'flashblocks-map' ) }
 					/>
 					<TextControl
 						__nextHasNoMarginBottom
@@ -372,7 +393,7 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 						label={ __( 'Panorama ID', 'flashblocks-map' ) }
 						value={ svPano }
 						onChange={ ( v ) => setAttributes( { svPano: v } ) }
-						help={ __( 'Optional. Overrides location if set.', 'flashblocks-map' ) }
+						help={ __( 'Optional. Overrides location.', 'flashblocks-map' ) }
 					/>
 					<RangeControl
 						__nextHasNoMarginBottom
@@ -408,12 +429,15 @@ function EmbedApiControls( { attributes, setAttributes } ) {
 }
 
 export default function Edit( { attributes, setAttributes } ) {
-	const { useEmbedApi, height } = attributes;
+	const { useEmbedApi, height, embedMode } = attributes;
 	const blockProps = useBlockProps();
 
 	const src = useEmbedApi
 		? getEmbedApiSrc( attributes )
 		: getSimpleSrc( attributes );
+
+	const needsConfig = useEmbedApi && ! window.flashblocksMap?.apiKey;
+	const needsFields = useEmbedApi && ! needsConfig && ! src;
 
 	return (
 		<>
@@ -441,16 +465,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			</InspectorControls>
 
 			<div { ...blockProps }>
-				{ src ? (
-					<iframe
-						title={ attributes.address || __( 'Google Map', 'flashblocks-map' ) }
-						src={ src }
-						style={ { border: 0, height, width: '100%' } }
-						loading="lazy"
-						referrerPolicy="no-referrer-when-downgrade"
-						allowFullScreen
-					/>
-				) : (
+				{ needsConfig && (
 					<div className="flashblocks-map-placeholder" style={ { height } }>
 						<div>
 							<p style={ { fontWeight: 600, margin: '0 0 8px' } }>
@@ -477,6 +492,23 @@ export default function Edit( { attributes, setAttributes } ) {
 							</p>
 						</div>
 					</div>
+				) }
+
+				{ needsFields && (
+					<div className="flashblocks-map-placeholder" style={ { height } }>
+						<p>{ getPlaceholderMessage( embedMode ) }</p>
+					</div>
+				) }
+
+				{ src && (
+					<iframe
+						title={ attributes.address || __( 'Google Map', 'flashblocks-map' ) }
+						src={ src }
+						style={ { border: 0, height, width: '100%' } }
+						loading="lazy"
+						referrerPolicy="no-referrer-when-downgrade"
+						allowFullScreen
+					/>
 				) }
 			</div>
 		</>
