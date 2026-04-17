@@ -1,8 +1,8 @@
 {
 	"name": "flashblocks-map",
-	"version": "0.1.0",
-	"description": "Example block scaffolded with Create Block tool.",
-	"author": "The WordPress Contributors",
+	"version": "1.0.0",
+	"description": "Embed a Google Map. Simple mode needs no API key. Embed API mode unlocks directions, street view, and search.",
+	"author": "Flashblocks",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
 	"scripts": {

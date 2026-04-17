@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Flashblocks Map
  * Description:       Embed a Google Map. Simple mode needs no API key. Embed API mode unlocks directions, street view, and search.
- * Version:           0.3.0
+ * Version:           1.0.0
  * Requires at least: 6.8
  * Requires PHP:      7.4
  * Author:            Flashblocks
