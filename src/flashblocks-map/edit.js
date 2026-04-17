@@ -56,7 +56,7 @@ export function getSimpleSrc( attributes ) {
 		output: 'embed',
 	} );
 	if ( showTraffic ) params.set( 'layer', 'traffic' );
-	if ( hideInfoWindow ) params.set( 'iwloc', 'near' );
+	if ( hideInfoWindow ) params.set( 'iwloc', 'B' );
 	return 'https://maps.google.com/maps?' + params.toString();
 }
 
@@ -399,7 +399,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						allowFullScreen
 					/>
 				) : (
-					<p className="flashblocks-map-placeholder">
+					<p className="flashblocks-map-placeholder" style={ { height } }>
 						{ __( 'Configure an API key to use Embed API mode.', 'flashblocks-map' ) }
 					</p>
 				) }
