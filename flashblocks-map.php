@@ -41,10 +41,12 @@ add_action( 'init', 'flashblocks_map_block_init' );
 function flashblocks_map_editor_assets() {
 	$api_key = defined( 'GOOGLE_MAPS_EMBED_API_KEY' ) ? GOOGLE_MAPS_EMBED_API_KEY : '';
 
-	wp_localize_script(
-		'flashblocks-map-flashblocks-map-editor-script',
-		'flashblocksMap',
-		array( 'apiKey' => $api_key )
+	wp_register_script( 'flashblocks-map-config', false );
+	wp_enqueue_script( 'flashblocks-map-config' );
+	wp_add_inline_script(
+		'flashblocks-map-config',
+		'window.flashblocksMap = ' . wp_json_encode( array( 'apiKey' => $api_key ) ) . ';',
+		'before'
 	);
 }
 add_action( 'enqueue_block_editor_assets', 'flashblocks_map_editor_assets' );
